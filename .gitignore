@@ -1,0 +1,15 @@
+# Dependencies / build
+node_modules/
+dist/
+
+# Env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
