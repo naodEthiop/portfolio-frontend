@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import type { AwardItem, Certificate, ContactResponse, Profile, PublicProjectsResponse, Skill, TeachingItem } from "@/lib/api/types";
 
-const apiBaseURL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
+const apiBaseURL =
+  import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? "https://portfolio-backend-kp4q.onrender.com/api/v1" : "/api/v1");
 const apiOrigin = apiBaseURL.replace(/\/api\/v1\/?$/, "");
 
 function assetURL(path?: string) {
