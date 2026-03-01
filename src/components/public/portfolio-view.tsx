@@ -288,7 +288,7 @@ export function PortfolioView({ profile, contact, projects, certificates, skills
       <div className="ambient-glow" />
 
       <header className="sticky top-0 z-10 border-b border-white/5 bg-black/10 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <a href="/" className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
             {profile.handle || profile.full_name || "NaodEthiop"}
           </a>
@@ -362,9 +362,9 @@ export function PortfolioView({ profile, contact, projects, certificates, skills
         </div>
       )}
 
-      <main className="mx-auto w-full max-w-5xl px-6 pb-20 pt-12">
+      <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 sm:pt-10 lg:px-8">
         {showBanner && (
-          <div className="mb-8 overflow-hidden rounded-3xl border border-white/10 bg-black/20">
+          <div className="mb-7 overflow-hidden rounded-3xl border border-white/10 bg-black/20">
             <img
               src={resolvedBannerURL}
               alt="Hero banner"
@@ -378,12 +378,12 @@ export function PortfolioView({ profile, contact, projects, certificates, skills
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="pb-12"
+          className="pb-10"
         >
-          <div className="grid gap-10 md:grid-cols-[1fr_240px] md:items-start">
+          <div className="grid gap-8 md:grid-cols-[1fr_280px] md:items-start">
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-zinc-400">{profile.location || "Addis Ababa, Ethiopia"}</p>
-              <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-6xl">
+              <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
                 <span className="bg-gradient-to-b from-white via-white to-[var(--accent)] bg-clip-text text-transparent">
                   {profile.headline || "Software Engineer | Go Backend Developer | Cyber security Enthusiast"}
                 </span>
@@ -453,7 +453,7 @@ export function PortfolioView({ profile, contact, projects, certificates, skills
             </div>
 
             <div className="relative">
-              <div className="mx-auto h-[240px] w-[240px] overflow-hidden rounded-[999px] border border-white/10 bg-white/5 shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
+              <div className="mx-auto h-[220px] w-[220px] overflow-hidden rounded-[999px] border border-white/10 bg-white/5 shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
                 <div className="absolute inset-0 rounded-[999px] bg-gradient-to-b from-white/10 to-transparent" />
                 <div className="absolute inset-[-60px] -z-10 rounded-[999px] bg-[radial-gradient(circle_at_30%_20%,rgba(0,173,216,0.25),transparent_55%)] blur-2xl" />
                 {profile.avatar_url ? (
