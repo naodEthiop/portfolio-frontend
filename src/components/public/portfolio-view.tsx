@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import type { AwardItem, Certificate, ContactResponse, Profile, PublicProjectsResponse, Skill, TeachingItem } from "@/lib/api/types";
 
 const apiBaseURL =
@@ -12,7 +12,17 @@ function assetURL(path?: string) {
   return `${apiOrigin}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-function CertificateMedia({ imageURL, alt }: { imageURL?: string; alt: string }) {
+function CertificateMedia({
+  imageURL,
+  alt,
+  fit = "cover",
+  className = "",
+}: {
+  imageURL?: string;
+  alt: string;
+  fit?: "cover" | "contain";
+  className?: string;
+}) {
   const svgFallback =
     "data:image/svg+xml," +
     encodeURIComponent(
@@ -52,7 +62,14 @@ function CertificateMedia({ imageURL, alt }: { imageURL?: string; alt: string })
     <img
       src={src}
       alt={alt}
-      className="h-full w-full object-cover transition duration-500 ease-out group-hover:scale-[1.02]"
+      className={[
+        "h-full w-full",
+        fit === "contain" ? "object-contain" : "object-cover",
+        fit === "cover" ? "transition duration-500 ease-out group-hover:scale-[1.02]" : "",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       loading="lazy"
       onError={() => setIndex((i) => Math.min(i + 1, candidates.length - 1))}
     />
@@ -255,6 +272,7 @@ function parseBioMarkdown(input: string): BioBlock[] {
 export function PortfolioView({ profile, contact, projects, certificates, skills, teaching, awards, loading }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [aboutExpanded, setAboutExpanded] = useState(false);
+  const [activeCertificate, setActiveCertificate] = useState<Certificate | null>(null);
   const visibleSocial = (contact?.social_links || []).filter((s) => s.visible);
   const social = visibleSocial.length > 0 ? visibleSocial.map((s) => ({ platform: s.platform, url: s.url })) : FALLBACK_SOCIAL;
   const pinned = projects?.pinned || [];
@@ -283,6 +301,22 @@ export function PortfolioView({ profile, contact, projects, certificates, skills
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    if (!activeCertificate) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveCertificate(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [activeCertificate]);
 
   return (
     <div className="relative min-h-screen bg-[var(--bg-deep)] text-[var(--fg)]">
@@ -795,10 +829,19 @@ export function PortfolioView({ profile, contact, projects, certificates, skills
                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                     className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition hover:border-white/20"
                   >
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/20">
+                    <button
+                      type="button"
+                      onClick={() => setActiveCertificate(cert)}
+                      className="relative aspect-[4/3] w-full cursor-zoom-in overflow-hidden bg-black/20 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+                      aria-haspopup="dialog"
+                      aria-label={`Preview certificate: ${cert.name}`}
+                    >
                       <CertificateMedia imageURL={cert.image_url} alt={cert.name} />
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent opacity-0 transition group-hover:opacity-100" />
-                    </div>
+                      <div className="pointer-events-none absolute bottom-3 left-3 rounded-full border border-white/10 bg-black/50 px-3 py-1 text-[11px] text-zinc-200 opacity-0 backdrop-blur transition group-hover:opacity-100">
+                        Click to enlarge
+                      </div>
+                    </button>
 
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-3">
@@ -830,6 +873,74 @@ export function PortfolioView({ profile, contact, projects, certificates, skills
             </div>
           )}
         </section>
+
+        <AnimatePresence>
+          {activeCertificate && (
+            <motion.div
+              key="certificate-lightbox"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur sm:p-8"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Certificate preview: ${activeCertificate.name}`}
+              onClick={() => setActiveCertificate(null)}
+            >
+              <motion.div
+                initial={{ y: 12, scale: 0.98, opacity: 0 }}
+                animate={{ y: 0, scale: 1, opacity: 1 }}
+                exit={{ y: 12, scale: 0.98, opacity: 0 }}
+                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/90 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between gap-4 border-b border-white/10 px-5 py-4">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-white">{activeCertificate.name}</div>
+                    <div className="mt-1 truncate text-xs text-zinc-400">
+                      {activeCertificate.issuer}
+                      {activeCertificate.issue_date ? ` • ${monthYear(activeCertificate.issue_date)}` : ""}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {activeCertificate.credential_url && (
+                      <a
+                        className="hidden text-xs text-[var(--accent)] hover:text-white sm:inline"
+                        href={activeCertificate.credential_url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Credential {"\u2192"}
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-200 transition hover:border-white/20 hover:bg-white/10"
+                      onClick={() => setActiveCertificate(null)}
+                      aria-label="Close certificate preview"
+                      autoFocus
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 p-3 sm:p-5">
+                  <div className="flex max-h-[76vh] items-center justify-center overflow-auto rounded-xl border border-white/10 bg-black/20 p-3">
+                    <CertificateMedia
+                      imageURL={activeCertificate.image_url}
+                      alt={activeCertificate.name}
+                      fit="contain"
+                      className="h-auto w-auto max-h-[72vh] max-w-full rounded-lg"
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <section id="teaching" className="scroll-mt-24 pt-12">
           <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-300">Teaching</h2>
